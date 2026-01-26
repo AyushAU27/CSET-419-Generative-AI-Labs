@@ -1,5 +1,4 @@
-```markdown
-# GAN for MNIST Image Generation
+ # GAN for MNIST Image Generation
 
 ## Objective
 This project aims to train a Generative Adversarial Network (GAN) using the MNIST dataset to generate synthetic images. The training involves defining generator and discriminator models, training for 50 epochs, saving sample images during training, generating 100 final images, and predicting their labels using a pre-trained classifier. Finally, the GAN training process is summarized, the quality of generated samples is evaluated, and the distribution of predicted labels is analyzed.
