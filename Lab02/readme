@@ -1,82 +1,80 @@
- # GAN for MNIST Image Generation
+
+---
+
+# GAN for MNIST Image Generation
 
 ## Objective
-This project aims to train a Generative Adversarial Network (GAN) using the MNIST dataset to generate synthetic images. The training involves defining generator and discriminator models, training for 50 epochs, saving sample images during training, generating 100 final images, and predicting their labels using a pre-trained classifier. Finally, the GAN training process is summarized, the quality of generated samples is evaluated, and the distribution of predicted labels is analyzed.
+
+This project implements a Generative Adversarial Network (GAN) to generate synthetic handwritten digit images using the MNIST dataset. The model is trained for 50 epochs, generates sample images during training, produces 100 final images, and evaluates them using a pre-trained CNN classifier.
+
+---
 
 ## Dataset
-The MNIST dataset, consisting of handwritten digit images, was used for training. Images were preprocessed by reshaping them to `(28, 28, 1)` to include a channel dimension and normalizing their pixel values to a range of `[-1, 1]`. This normalization helps in stabilizing GAN training.
+
+The MNIST dataset of handwritten digits (0–9) is used.
+
+* Images reshaped to `(28, 28, 1)`
+* Pixel values normalized to the range `[-1, 1]`
+
+---
 
 ## GAN Architecture
 
 ### Generator
-The generator model transforms a `100`-dimensional noise vector into a synthetic `28x28x1` MNIST-like image. It consists of:
-*   An `Input` layer with `shape=(100,)` (noise_dim).
-*   A `Dense` layer to project the noise into a higher-dimensional space (`7 * 7 * 256`), followed by `BatchNormalization` and `LeakyReLU` activation.
-*   A `Reshape` layer to transform the output into `(7, 7, 256)`.
-*   Two `Conv2DTranspose` (deconvolutional) layers with `BatchNormalization` and `LeakyReLU` activations to upsample the image:
-    *   First `Conv2DTranspose`: `128` filters, `(5, 5)` kernel, `strides=(1, 1)`, output `(None, 7, 7, 128)`.
-    *   Second `Conv2DTranspose`: `64` filters, `(5, 5)` kernel, `strides=(2, 2)`, output `(None, 14, 14, 64)`.
-*   A final `Conv2DTranspose` layer with `1` filter, `(5, 5)` kernel, `strides=(2, 2)`, and `tanh` activation to produce the `(None, 28, 28, 1)` output image, normalized to `[-1, 1]`.
+
+* Input noise vector of size `100`
+* Dense layer projected to `7 × 7 × 256`
+* Batch Normalization and LeakyReLU
+* Reshape to `(7, 7, 256)`
+* Conv2DTranspose layers to upsample
+* Final output: `(28, 28, 1)` with `tanh` activation
 
 ### Discriminator
-The discriminator model takes a `28x28x1` image as input and outputs a single logit representing the probability that the image is real. It consists of:
-*   An `Input` layer with `shape=(28, 28, 1)`.
-*   Two `Conv2D` layers with `LeakyReLU` activations and `Dropout` for regularization:
-    *   First `Conv2D`: `64` filters, `(5, 5)` kernel, `strides=(2, 2)`.
-    *   Second `Conv2D`: `128` filters, `(5, 5)` kernel, `strides=(2, 2)`.
-*   A `Flatten` layer to convert the 2D feature maps into a 1D vector.
-*   A final `Dense` layer with `1` output unit and no activation (outputting raw logits).
 
-## Training Parameters
-The GAN was trained with the following parameters:
-*   `epochs`: `50`
-*   `batch_size`: `128`
-*   `noise_dim`: `100` (dimension of the input noise vector for the generator)
-*   `learning_rate`: `0.0002`
-*   `save_interval`: `5` (images saved every 5 epochs)
+* Input shape `(28, 28, 1)`
+* Two Conv2D layers with LeakyReLU and Dropout
+* Flatten layer
+* Final Dense layer with 1 output (logit)
 
-## Loss Functions and Optimizers
-*   **Loss Function**: `tf.keras.losses.BinaryCrossentropy(from_logits=True)` was used for both generator and discriminator losses.
-*   **Discriminator Loss**: Calculated as the sum of `cross_entropy` between real images and labels (all ones) and fake images and labels (all zeros).
-*   **Generator Loss**: Calculated as `cross_entropy` between fake images and labels (all ones), as the generator aims to fool the discriminator into classifying generated images as real.
-*   **Optimizers**: Both the generator and discriminator used `tf.keras.optimizers.Adam` with the specified `learning_rate` (`0.0002`).
+---
 
-## Training Process Summary
-The training loop iterates for `50` epochs. In each epoch, the `train_step` function is called for every batch of real images from the `train_dataset`.
+## Training Details
 
-Within `train_step`:
-1.  Random noise is generated for the generator.
-2.  The generator creates fake images from this noise.
-3.  The discriminator evaluates both real and generated images.
-4.  `generator_loss` and `discriminator_loss` are calculated.
-5.  Gradients are computed using `tf.GradientTape` for both models with respect to their respective losses.
-6.  Optimizers (`generator_optimizer` and `discriminator_optimizer`) apply these gradients to update the model weights.
+* Epochs: `50`
+* Batch size: `128`
+* Noise dimension: `100`
+* Learning rate: `0.0002`
+* Optimizer: Adam
+* Loss function: Binary Cross-Entropy (from logits)
 
-Average generator and discriminator losses are printed per epoch. Sample images generated by the current generator state are saved every `5` epochs (or at initial epochs).
+Sample images are saved every 5 epochs.
+
+---
 
 ## Results
 
-### Generated Samples During Training
-Sample images were saved periodically (specifically at epochs 1, 2, 3, 4, 5 and then every `5` epochs) to the `generated_samples/` directory, allowing for a visual assessment of the generator's learning progress throughout the `50` epochs.
+* 100 final images generated after training
+* Images saved in `final_generated_images/`
+* Intermediate samples saved in `generated_samples/`
 
-### Final Generated Images
-After `50` epochs of training, `100` new synthetic images were generated using the trained generator model. These images were saved individually to the `final_generated_images/` directory.
+---
 
-### Classifier for Evaluation
-To evaluate the diversity and recognizability of the generated images, a separate Convolutional Neural Network (CNN) classifier was built and trained on the original MNIST dataset. The classifier architecture includes two `Conv2D` layers with `MaxPooling2D`, `Flatten`, and two `Dense` layers (the last with `softmax` activation for 10 classes). It was trained for `5` epochs and achieved a validation accuracy of approximately `98.76%` on the MNIST test set, demonstrating its proficiency in recognizing real MNIST digits.
+## Evaluation
 
-### Predicted Label Distribution of Generated Images
-The trained classifier was then used to predict the labels for the `100` final generated images. The distribution of these predicted labels was as follows:
-*   Digit 0: `9` images
-*   Digit 1: `10` images
-*   Digit 2: `9` images
-*   Digit 3: `13` images
-*   Digit 4: `12` images
-*   Digit 5: `6` images
-*   Digit 6: `11` images
-*   Digit 7: `10` images
-*   Digit 8: `10` images
-*   Digit 9: `10` images
+A CNN classifier trained on MNIST was used to evaluate generated images.
 
-## Conclusion and Insights
-The GAN successfully learned to generate diverse MNIST-like images, as evidenced by the relatively balanced distribution of predicted labels across all ten digits. This indicates that the model avoided mode collapse, where it might only generate a few specific digits. The training process, involving adversarial learning between the generator and discriminator, resulted in a generator capable of producing recognizable, albeit synthetic, MNIST digits. While a direct objective metric was not used for generation quality, the high accuracy of the separate classifier on generated samples and the distributed label counts suggest a good level of performance and diversity.
+* Validation accuracy on MNIST test set: ~98.76%
+
+### Predicted Label Distribution (100 Images)
+
+0: 9, 1: 10, 2: 9, 3: 13, 4: 12,
+5: 6, 6: 11, 7: 10, 8: 10, 9: 10
+
+---
+
+## Conclusion
+
+The GAN successfully generates diverse and recognizable MNIST digits. The balanced label distribution indicates that the model avoids mode collapse and produces varied outputs.
+
+---
+
