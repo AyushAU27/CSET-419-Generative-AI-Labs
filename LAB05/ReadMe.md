@@ -1,4 +1,4 @@
-Image Reconstruction with Encoder-Decoder CNN
+# Image Reconstruction with Encoder-Decoder CNN
 This project implements a simple Encoder-Decoder Convolutional Neural Network (CNN) in PyTorch for image reconstruction. The model is trained on the CIFAR-10 dataset to learn how to encode images into a lower-dimensional representation and then decode them back to their original form.
 
 Features
